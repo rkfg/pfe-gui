@@ -26,7 +26,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.SWTResourceManager;
@@ -38,7 +37,6 @@ public class FileReceiver extends Composite {
 
     PFECore pfeCore = PFECore.INSTANCE;
     private Label lblDropTargetHint;
-    ProgressBar pb_hashProgress;
     private DropTarget dropTarget;
     private ToolItem addFiles;
     private ToolItem addDirs;
@@ -70,7 +68,7 @@ public class FileReceiver extends Composite {
 
         createDropTarget();
         setHandlers();
-
+        layout();
     }
 
     private void setHandlers() {
@@ -113,24 +111,67 @@ public class FileReceiver extends Composite {
         });
     }
 
-    private void createProgressBar() {
-        if (lblDropTargetHint != null && !lblDropTargetHint.isDisposed()) {
-            lblDropTargetHint.dispose();
-        }
-        if (dropTarget != null && !dropTarget.isDisposed()) {
-            dropTarget.dispose();
-        }
-        pb_hashProgress = new ProgressBar(this, SWT.HORIZONTAL);
-        GridData gd_pb_hashProgress = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-        pb_hashProgress.setLayoutData(gd_pb_hashProgress);
-        pb_hashProgress.setMaximum(100);
+    public void hashFiles(final String... files) {
+        final Progress progress = new Progress(this, SWT.NONE);
+        GridData gd_progress = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
+        progress.setLayoutData(gd_progress);
+        progress.moveAbove(lblDropTargetHint);
         layout();
+        executorService.submit(new Callable<TorrentHandle>() {
+
+            @Override
+            public TorrentHandle call() throws Exception {
+                try {
+                    final TorrentHandle handle = pfeCore.share(new set_piece_hashes_listener() {
+                        @Override
+                        public void progress(final int i) {
+                            display.asyncExec(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    progress.setProgress(i);
+                                }
+                            });
+                        }
+                    }, files);
+                    handle.resume();
+                    final String hash = pfeCore.getLink(handle);
+                    display.asyncExec(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            progress.setTitle(handle.getName(), hash);
+                            progress.setProgress(100);
+                            MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK);
+                            messageBox.setText("Готово");
+                            messageBox.setMessage("Код: " + hash);
+                            messageBox.open();
+                        }
+                    });
+                    return handle;
+                } catch (Throwable e) {
+                    showError(e);
+                    return null;
+                }
+            }
+
+            private void showError(final Throwable e) {
+                display.asyncExec(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        progress.dispose();
+                        MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
+                        messageBox.setText("Ошибка");
+                        messageBox.setMessage(e.getMessage());
+                        messageBox.open();
+                    }
+                });
+            }
+        });
     }
 
     private void createDropTarget() {
-        if (pb_hashProgress != null && !pb_hashProgress.isDisposed()) {
-            pb_hashProgress.dispose();
-        }
         dropTarget = new DropTarget(this, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
         dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance() });
         lblDropTargetHint = new Label(this, SWT.NONE);
@@ -154,62 +195,6 @@ public class FileReceiver extends Composite {
                 }
                 String[] files = (String[]) event.data;
                 hashFiles(files);
-            }
-        });
-        layout();
-    }
-
-    private void hashFiles(final String... files) {
-        createProgressBar();
-        executorService.submit(new Callable<TorrentHandle>() {
-
-            @Override
-            public TorrentHandle call() throws Exception {
-                try {
-                    final TorrentHandle handle = pfeCore.share(new set_piece_hashes_listener() {
-                        @Override
-                        public void progress(final int i) {
-                            display.asyncExec(new Runnable() {
-
-                                @Override
-                                public void run() {
-                                    pb_hashProgress.setSelection(i);
-                                }
-                            });
-                        }
-                    }, files);
-                    handle.resume();
-                    final String link = pfeCore.getLink(handle);
-                    display.asyncExec(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            createDropTarget();
-                            MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK);
-                            messageBox.setText("Готово");
-                            messageBox.setMessage("Код: " + link);
-                            messageBox.open();
-                        }
-                    });
-                    return handle;
-                } catch (Throwable e) {
-                    showError(e);
-                    return null;
-                }
-            }
-
-            private void showError(final Throwable e) {
-                display.asyncExec(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        createDropTarget();
-                        MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
-                        messageBox.setText("Ошибка");
-                        messageBox.setMessage(e.getMessage());
-                        messageBox.open();
-                    }
-                });
             }
         });
     }
