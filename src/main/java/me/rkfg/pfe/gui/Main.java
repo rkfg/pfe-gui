@@ -15,6 +15,7 @@ public class Main {
     private Shell shell;
     private Display display;
     PFECore pfeCore = PFECore.INSTANCE;
+    private FileReceiver fileReceiver;
 
     Main() {
         this.display = Display.getDefault();
@@ -23,7 +24,7 @@ public class Main {
         shell.setText("PFE GUI Client");
         FillLayout fillLayout = new FillLayout(SWT.ALL);
         shell.setLayout(fillLayout);
-        new FileReceiver(shell);
+        fileReceiver = new FileReceiver(shell);
         shell.pack();
         center(shell);
         pfeCore.init(new SettingsStorage());
@@ -40,7 +41,10 @@ public class Main {
                 display.sleep();
             }
         }
+        fileReceiver.dispose();
+        shell.dispose();
         display.dispose();
+        pfeCore.stop();
     }
 
     public static void center(Shell shell, boolean relativeToParent) {

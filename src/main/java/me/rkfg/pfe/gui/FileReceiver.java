@@ -3,11 +3,12 @@ package me.rkfg.pfe.gui;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import me.rkfg.pfe.PFECore;
-import me.rkfg.pfe.PFEException;
 
-import org.apache.commons.codec.DecoderException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
@@ -21,6 +22,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
@@ -41,12 +43,14 @@ public class FileReceiver extends Composite {
     private ToolItem addFiles;
     private ToolItem addDirs;
     private ToolItem downloadTorrent;
+    private Display display;
+
+    ExecutorService executorService = Executors.newCachedThreadPool();
 
     FileReceiver(Composite parent) {
         super(parent, SWT.NONE);
+        display = getDisplay();
         setLayout(new GridLayout(1, false));
-        dropTarget = new DropTarget(this, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
-        dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance() });
 
         ToolBar toolBar = new ToolBar(this, SWT.FLAT);
         toolBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -107,6 +111,31 @@ public class FileReceiver extends Composite {
                 }
             }
         });
+    }
+
+    private void createProgressBar() {
+        if (lblDropTargetHint != null && !lblDropTargetHint.isDisposed()) {
+            lblDropTargetHint.dispose();
+        }
+        if (dropTarget != null && !dropTarget.isDisposed()) {
+            dropTarget.dispose();
+        }
+        pb_hashProgress = new ProgressBar(this, SWT.HORIZONTAL);
+        GridData gd_pb_hashProgress = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
+        pb_hashProgress.setLayoutData(gd_pb_hashProgress);
+        pb_hashProgress.setMaximum(100);
+        layout();
+    }
+
+    private void createDropTarget() {
+        if (pb_hashProgress != null && !pb_hashProgress.isDisposed()) {
+            pb_hashProgress.dispose();
+        }
+        dropTarget = new DropTarget(this, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
+        dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance() });
+        lblDropTargetHint = new Label(this, SWT.NONE);
+        lblDropTargetHint.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
+        lblDropTargetHint.setText("Перетащите сюда файлы или папку из проводника");
         dropTarget.addDropListener(new DropTargetAdapter() {
             @Override
             public void dragEnter(DropTargetEvent event) {
@@ -126,57 +155,68 @@ public class FileReceiver extends Composite {
                 String[] files = (String[]) event.data;
                 hashFiles(files);
             }
+        });
+        layout();
+    }
 
+    private void hashFiles(final String... files) {
+        createProgressBar();
+        executorService.submit(new Callable<TorrentHandle>() {
+
+            @Override
+            public TorrentHandle call() throws Exception {
+                try {
+                    final TorrentHandle handle = pfeCore.share(new set_piece_hashes_listener() {
+                        @Override
+                        public void progress(final int i) {
+                            display.asyncExec(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    pb_hashProgress.setSelection(i);
+                                }
+                            });
+                        }
+                    }, files);
+                    handle.resume();
+                    final String link = pfeCore.getLink(handle);
+                    display.asyncExec(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            createDropTarget();
+                            MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK);
+                            messageBox.setText("Готово");
+                            messageBox.setMessage("Код: " + link);
+                            messageBox.open();
+                        }
+                    });
+                    return handle;
+                } catch (Throwable e) {
+                    showError(e);
+                    return null;
+                }
+            }
+
+            private void showError(final Throwable e) {
+                display.asyncExec(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        createDropTarget();
+                        MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
+                        messageBox.setText("Ошибка");
+                        messageBox.setMessage(e.getMessage());
+                        messageBox.open();
+                    }
+                });
+            }
         });
     }
 
-    private void createProgressBar() {
-        pb_hashProgress = new ProgressBar(this, SWT.HORIZONTAL);
-        GridData gd_pb_hashProgress = new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1);
-        pb_hashProgress.setLayoutData(gd_pb_hashProgress);
-        pb_hashProgress.setMaximum(100);
-    }
-
-    private void createDropTarget() {
-        lblDropTargetHint = new Label(this, SWT.NONE);
-        lblDropTargetHint.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
-        lblDropTargetHint.setText("Перетащите сюда файлы или папку из проводника");
-    }
-
-    private void hashFiles(String... files) {
-        try {
-            createProgressBar();
-            lblDropTargetHint.dispose();
-            layout(true, true);
-            TorrentHandle handle = pfeCore.share(new set_piece_hashes_listener() {
-                @Override
-                public void progress(final int i) {
-                    pb_hashProgress.setSelection(i);
-                    layout(true, true);
-                    getDisplay().readAndDispatch();
-                }
-            }, files);
-            restoreDropTarget();
-            handle.resume();
-            String link = pfeCore.getLink(handle);
-            MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK);
-            messageBox.setText("Sharing is ready");
-            messageBox.setMessage("Share this link: pfe:" + link);
-            messageBox.open();
-        } catch (DecoderException e) {
-            e.printStackTrace();
-        } catch (PFEException e) {
-            restoreDropTarget();
-            MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
-            messageBox.setText("Error");
-            messageBox.setMessage(e.getMessage());
-            messageBox.open();
-        }
-    }
-
-    private void restoreDropTarget() {
-        createDropTarget();
-        pb_hashProgress.dispose();
-        layout(true, true);
+    @Override
+    public void dispose() {
+        super.dispose();
+        executorService.shutdownNow();
     }
 }
