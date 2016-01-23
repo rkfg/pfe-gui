@@ -11,6 +11,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.wb.swt.SWTResourceManager;
 
@@ -20,9 +21,13 @@ public class Progress extends Composite {
     private Button b_copy;
     private String hash;
     private Clipboard clipboard;
+    private String name;
+    private Button b_cancel;
+    private FileReceiver parent;
 
-    public Progress(Composite parent, int style) {
+    public Progress(FileReceiver parent, int style) {
         super(parent, SWT.NONE);
+        this.parent = parent;
         createUI();
         setHandlers();
     }
@@ -32,7 +37,18 @@ public class Progress extends Composite {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-                clipboard.setContents(new Object[] { hash }, new Transfer[] { TextTransfer.getInstance() });
+                clipboard.setContents(new Object[] { getHash() }, new Transfer[] { TextTransfer.getInstance() });
+            }
+        });
+        b_cancel.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                MessageBox messageBox = new MessageBox(getShell(), SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
+                messageBox.setText("Отменить?");
+                messageBox.setMessage("Отменить эту закачку?");
+                int result = messageBox.open();
+                if (result == SWT.OK)
+                    parent.removeTorrent(hash);
             }
         });
     }
@@ -52,7 +68,8 @@ public class Progress extends Composite {
         pb_hashProgress.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
         pb_hashProgress.setMaximum(100);
 
-        Button b_cancel = new Button(this, SWT.FLAT);
+        b_cancel = new Button(this, SWT.FLAT);
+        b_cancel.setEnabled(false);
         b_cancel.setToolTipText("Отмена");
         b_cancel.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/process-stop.png"));
     }
@@ -62,11 +79,43 @@ public class Progress extends Composite {
     }
 
     public void setTitle(String name, String hash) {
+        this.name = name;
         this.hash = hash;
-        if (hash != null && !hash.isEmpty()) {
-            b_copy.setEnabled(true);
+        updateTitle();
+    }
+
+    public void updateTitle() {
+        StringBuilder sb = new StringBuilder();
+        if (name != null) {
+            sb.append(name);
         }
-        lb_title.setText(String.format("%s [%s]", name, hash));
+        if (hash != null && !hash.isEmpty()) {
+            if (name != null) {
+                sb.append(' ');
+            }
+            sb.append("[").append(hash).append("]");
+            b_copy.setEnabled(true);
+            b_cancel.setEnabled(true);
+        }
+        lb_title.setText(sb.toString());
+    }
+
+    public String getTorrentName() {
+        return name;
+    }
+
+    public void setTorrentName(String name) {
+        this.name = name;
+        updateTitle();
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public void setHash(String hash) {
+        this.hash = hash;
+        updateTitle();
     }
 
 }

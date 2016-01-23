@@ -2,12 +2,17 @@ package me.rkfg.pfe.gui;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import me.rkfg.pfe.PFECore;
+import me.rkfg.pfe.PFEListener;
+import me.rkfg.pfe.TorrentActivity;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -44,6 +49,7 @@ public class FileReceiver extends Composite {
     private Display display;
 
     ExecutorService executorService = Executors.newCachedThreadPool();
+    private Map<String, Progress> progresses = new HashMap<>();
 
     FileReceiver(Composite parent) {
         super(parent, SWT.NONE);
@@ -68,6 +74,29 @@ public class FileReceiver extends Composite {
 
         createDropTarget();
         setHandlers();
+        pfeCore.addPFEListener(new PFEListener() {
+
+            @Override
+            public void torrentProgress(Collection<TorrentActivity> torrentActivities) {
+                for (final TorrentActivity torrentActivity : torrentActivities) {
+                    if (torrentActivity.hash != null) {
+                        final Progress progress = progresses.get(torrentActivity.hash);
+                        if (progress != null) {
+                            display.asyncExec(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    progress.setProgress(torrentActivity.progress);
+                                    if (progress.getTorrentName() == null && torrentActivity.name != null) {
+                                        progress.setTorrentName(torrentActivity.name);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        });
         layout();
     }
 
@@ -106,17 +135,14 @@ public class FileReceiver extends Composite {
                 DownloadInfo info = new DownloadDialog(getShell()).open();
                 if (info != null) {
                     pfeCore.addTorrent(info.hash, info.path);
+                    createProgress(info.hash);
                 }
             }
         });
     }
 
     public void hashFiles(final String... files) {
-        final Progress progress = new Progress(this, SWT.NONE);
-        GridData gd_progress = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
-        progress.setLayoutData(gd_progress);
-        progress.moveAbove(lblDropTargetHint);
-        layout();
+        final Progress progress = createProgress(null);
         executorService.submit(new Callable<TorrentHandle>() {
 
             @Override
@@ -135,7 +161,7 @@ public class FileReceiver extends Composite {
                         }
                     }, files);
                     handle.resume();
-                    final String hash = pfeCore.getLink(handle);
+                    final String hash = pfeCore.getHash(handle);
                     display.asyncExec(new Runnable() {
 
                         @Override
@@ -171,6 +197,20 @@ public class FileReceiver extends Composite {
         });
     }
 
+    private Progress createProgress(String hash) {
+        final Progress progress = new Progress(this, SWT.NONE);
+        GridData gd_progress = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
+        progress.setLayoutData(gd_progress);
+        progress.moveAbove(lblDropTargetHint);
+        progress.setHash(hash);
+        progress.updateTitle();
+        layout();
+        if (hash != null) {
+            progresses.put(hash, progress);
+        }
+        return progress;
+    }
+
     private void createDropTarget() {
         dropTarget = new DropTarget(this, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
         dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance() });
@@ -203,5 +243,16 @@ public class FileReceiver extends Composite {
     public void dispose() {
         super.dispose();
         executorService.shutdownNow();
+    }
+
+    public void removeTorrent(String hash) {
+        if (hash == null) {
+            return;
+        }
+        TorrentHandle handle = pfeCore.findTorrent(hash);
+        Progress removed = progresses.remove(hash);
+        removed.dispose();
+        pfeCore.removeTorrent(handle);
+        layout();
     }
 }
