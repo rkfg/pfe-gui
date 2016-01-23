@@ -7,37 +7,31 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-public class Main extends Composite {
+public class Main {
 
     private Shell shell;
     private Display display;
     PFECore pfeCore = PFECore.INSTANCE;
 
-    Main(Shell parent, Display display) {
-        super(parent, SWT.NONE);
-        this.shell = parent;
-        this.display = display;
-        parent.setMinimumSize(400, 300);
-        parent.setText("PFE GUI Client");
+    Main() {
+        this.display = Display.getDefault();
+        this.shell = new Shell(display);
+        shell.setMinimumSize(400, 300);
+        shell.setText("PFE GUI Client");
         FillLayout fillLayout = new FillLayout(SWT.ALL);
-        parent.setLayout(fillLayout);
-        setLayout(fillLayout);
-        new FileReceiver(this);
-        parent.pack();
-        Rectangle bounds = display.getBounds();
-        Point size = parent.getSize();
-        parent.setLocation((bounds.width - size.x) / 2, (bounds.height - size.y) / 2);
+        shell.setLayout(fillLayout);
+        new FileReceiver(shell);
+        shell.pack();
+        center(shell);
         pfeCore.init(new SettingsStorage());
-        parent.open();
+        shell.open();
     }
 
     public static void main(String[] args) {
-        Display display = Display.getDefault();
-        new Main(new Shell(display), display).run();
+        new Main().run();
     }
 
     private void run() {
@@ -49,4 +43,22 @@ public class Main extends Composite {
         display.dispose();
     }
 
+    public static void center(Shell shell, boolean relativeToParent) {
+        int left = 0;
+        int top = 0;
+        Rectangle bounds = null;
+        if (relativeToParent && shell != null) {
+            bounds = shell.getParent().getBounds();
+            left = bounds.x;
+            top = bounds.y;
+        } else {
+            bounds = shell.getDisplay().getBounds();
+        }
+        Point size = shell.getSize();
+        shell.setLocation(left + (bounds.width - size.x) / 2, top + (bounds.height - size.y) / 2);
+    }
+
+    public static void center(Shell shell) {
+        center(shell, false);
+    }
 }

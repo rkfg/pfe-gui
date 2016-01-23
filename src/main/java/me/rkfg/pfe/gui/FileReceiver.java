@@ -40,6 +40,7 @@ public class FileReceiver extends Composite {
     private DropTarget dropTarget;
     private ToolItem addFiles;
     private ToolItem addDirs;
+    private ToolItem downloadTorrent;
 
     FileReceiver(Composite parent) {
         super(parent, SWT.NONE);
@@ -56,8 +57,12 @@ public class FileReceiver extends Composite {
         addFiles.setToolTipText("Добавить файлы");
 
         addDirs = new ToolItem(toolBar, SWT.NONE);
-        addDirs.setToolTipText("Добавить папку");
         addDirs.setImage(SWTResourceManager.getImage(FileReceiver.class, "/me/rkfg/pfe/gui/icons/document-open-folder.png"));
+        addDirs.setToolTipText("Добавить папку");
+
+        downloadTorrent = new ToolItem(toolBar, SWT.NONE);
+        downloadTorrent.setImage(SWTResourceManager.getImage(FileReceiver.class, "/me/rkfg/pfe/gui/icons/download.png"));
+        downloadTorrent.setToolTipText("Скачать");
 
         createDropTarget();
         setHandlers();
@@ -85,11 +90,21 @@ public class FileReceiver extends Composite {
             public void widgetSelected(SelectionEvent e) {
                 DirectoryDialog directoryDialog = new DirectoryDialog(getShell());
                 directoryDialog.setMessage("Выберите папку, чтобы поделиться ею.");
+                directoryDialog.setText("Выберите папку");
                 String selected = directoryDialog.open();
                 if (selected == null) {
                     return;
                 }
                 hashFiles(selected);
+            }
+        });
+        downloadTorrent.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                DownloadInfo info = new DownloadDialog(getShell()).open();
+                if (info != null) {
+                    pfeCore.addTorrent(info.hash, info.path);
+                }
             }
         });
         dropTarget.addDropListener(new DropTargetAdapter() {
