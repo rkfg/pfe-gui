@@ -65,11 +65,11 @@ public class FileReceiver extends Composite {
         addFiles = new ToolItem(toolBar, SWT.NONE);
         addFiles.setWidth(32);
         addFiles.setImage(SWTResourceManager.getImage(FileReceiver.class, "/me/rkfg/pfe/gui/icons/document-new.png"));
-        addFiles.setToolTipText("Добавить файлы");
+        addFiles.setToolTipText("Поделиться файлом");
 
         addDirs = new ToolItem(toolBar, SWT.NONE);
         addDirs.setImage(SWTResourceManager.getImage(FileReceiver.class, "/me/rkfg/pfe/gui/icons/document-open-folder.png"));
-        addDirs.setToolTipText("Добавить папку");
+        addDirs.setToolTipText("Поделиться папкой");
 
         downloadTorrent = new ToolItem(toolBar, SWT.NONE);
         downloadTorrent.setImage(SWTResourceManager.getImage(FileReceiver.class, "/me/rkfg/pfe/gui/icons/download.png"));
