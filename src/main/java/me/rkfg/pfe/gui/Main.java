@@ -42,10 +42,10 @@ public class Main {
                 display.sleep();
             }
         }
-        fileReceiver.dispose();
         shell.dispose();
-        display.dispose();
         pfeCore.stop();
+        fileReceiver.dispose();
+        display.dispose();
     }
 
     public static void center(Shell shell, boolean relativeToParent) {
