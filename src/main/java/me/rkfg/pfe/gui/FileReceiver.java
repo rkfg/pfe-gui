@@ -92,6 +92,9 @@ public class FileReceiver extends Composite {
                                     if (progress.getTorrentName() == null && torrentActivity.name != null) {
                                         progress.setTorrentName(torrentActivity.name);
                                     }
+                                    if (progress.geTorrentSize() == 0 && torrentActivity.size > 0) {
+                                        progress.setTorrentSize(torrentActivity.size);
+                                    }
                                 }
                             });
                         }
@@ -141,7 +144,7 @@ public class FileReceiver extends Composite {
                 }
                 List<String> filenames = new ArrayList<>(fileDialog.getFileNames().length);
                 String filterPath = fileDialog.getFilterPath();
-                pathStorage.setDownloadPath(filterPath);
+                pathStorage.setSharePath(filterPath);
                 for (String filename : fileDialog.getFileNames()) {
                     filenames.add(new File(filterPath, filename).getAbsolutePath());
                 }

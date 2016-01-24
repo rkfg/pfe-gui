@@ -24,6 +24,8 @@ public class Progress extends Composite {
     private String name;
     private Button b_cancel;
     private FileReceiver parent;
+    private int progress;
+    private long size;
 
     public Progress(FileReceiver parent, int style) {
         super(parent, SWT.NONE);
@@ -74,8 +76,10 @@ public class Progress extends Composite {
         b_cancel.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/process-stop.png"));
     }
 
-    public void setProgress(int i) {
-        pb_hashProgress.setSelection(i);
+    public void setProgress(int progress) {
+        this.progress = progress;
+        pb_hashProgress.setSelection(progress);
+        updateTitle();
     }
 
     public void setTitle(String name, String hash) {
@@ -89,15 +93,27 @@ public class Progress extends Composite {
         if (name != null) {
             sb.append(name);
         }
+        if (size > 0) {
+            sb.append(", ").append(formatSize());
+        }
+        sb.append(" (").append(progress).append("%)");
         if (hash != null && !hash.isEmpty()) {
-            if (name != null) {
-                sb.append(' ');
-            }
-            sb.append("[").append(hash).append("]");
             b_copy.setEnabled(true);
             b_cancel.setEnabled(true);
         }
         lb_title.setText(sb.toString());
+    }
+
+    private String formatSize() {
+        String result = size + " " + "байт";
+        String suffixes[] = { "байт", "КБайт", "МБайт", "ГБайт" };
+        for (int i = 9; i >= 0; i -= 3) {
+            double scale = Math.pow(10, i);
+            if (size >= scale) {
+                return Math.round(size * 100 / scale) / 100.0 + " " + suffixes[i / 3];
+            }
+        }
+        return result;
     }
 
     public String getTorrentName() {
@@ -116,6 +132,15 @@ public class Progress extends Composite {
     public void setHash(String hash) {
         this.hash = hash;
         updateTitle();
+    }
+
+    public void setTorrentSize(long size) {
+        this.size = size;
+        updateTitle();
+    }
+
+    public long geTorrentSize() {
+        return size;
     }
 
 }
