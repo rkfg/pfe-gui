@@ -52,6 +52,7 @@ public class FileReceiver extends Composite {
     private Map<String, Progress> progresses = new HashMap<>();
     private PathStorage pathStorage = new PathStorage();
     private Composite c_dropTarget;
+    private ClipboardMonitor clipboardMonitor;
 
     FileReceiver(Composite parent) {
         super(parent, SWT.NONE);
@@ -117,7 +118,7 @@ public class FileReceiver extends Composite {
                 }
             }
         });
-        new ClipboardMonitor(getShell(), pathStorage) {
+        clipboardMonitor = new ClipboardMonitor(getShell(), pathStorage) {
 
             @Override
             protected void addTorrent(final DownloadInfo info) {
@@ -282,6 +283,7 @@ public class FileReceiver extends Composite {
     @Override
     public void dispose() {
         super.dispose();
+        clipboardMonitor.stop();
         executorService.shutdownNow();
     }
 

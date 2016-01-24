@@ -17,11 +17,12 @@ public abstract class ClipboardMonitor {
     private TextTransfer textTransfer = TextTransfer.getInstance();
     String previous = "";
     private Display display;
+    private Timer timer;
 
     public ClipboardMonitor(final Shell parent, final PathStorage pathStorage) {
         display = parent.getDisplay();
         clipboard = new Clipboard(parent.getDisplay());
-        Timer timer = new Timer("Clipboard monitor", true);
+        timer = new Timer("Clipboard monitor", true);
         timer.schedule(new TimerTask() {
 
             @Override
@@ -70,4 +71,8 @@ public abstract class ClipboardMonitor {
     }
 
     protected abstract void addTorrent(DownloadInfo info);
+
+    public void stop() {
+        timer.cancel();
+    }
 }
