@@ -1,5 +1,7 @@
 #!/bin/sh
 
+cd "$(dirname "$0")"
+rm -rf release
 for os in linux32 linux64
 do
   mvn clean package -P$os

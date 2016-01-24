@@ -96,6 +96,9 @@ public class FileReceiver extends Composite {
                                     if (progress.geTorrentSize() == 0 && torrentActivity.size > 0) {
                                         progress.setTorrentSize(torrentActivity.size);
                                     }
+                                    if (!progress.isComplete() && torrentActivity.complete) {
+                                        progress.setComplete();
+                                    }
                                 }
                             });
                         }

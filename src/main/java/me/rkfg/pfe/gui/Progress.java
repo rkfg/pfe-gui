@@ -26,6 +26,8 @@ public class Progress extends Composite {
     private FileReceiver parent;
     private int progress;
     private long size;
+    private boolean complete = false;
+    private Label lb_complete;
 
     public Progress(FileReceiver parent, int style) {
         super(parent, SWT.NONE);
@@ -57,7 +59,11 @@ public class Progress extends Composite {
 
     private void createUI() {
         clipboard = new Clipboard(getDisplay());
-        setLayout(new GridLayout(2, false));
+        setLayout(new GridLayout(3, false));
+
+        lb_complete = new Label(this, SWT.NONE);
+        lb_complete.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/arrow-down-double.png"));
+        lb_complete.setToolTipText("В процессе");
 
         lb_title = new Label(this, SWT.NONE);
         lb_title.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
@@ -67,7 +73,7 @@ public class Progress extends Composite {
         b_copy.setToolTipText("Скопировать код");
         b_copy.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/edit-copy.png"));
         pb_hashProgress = new ProgressBar(this, SWT.BORDER);
-        pb_hashProgress.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+        pb_hashProgress.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         pb_hashProgress.setMaximum(100);
 
         b_cancel = new Button(this, SWT.FLAT);
@@ -141,6 +147,15 @@ public class Progress extends Composite {
 
     public long geTorrentSize() {
         return size;
+    }
+
+    public boolean isComplete() {
+        return complete;
+    }
+
+    public void setComplete() {
+        lb_complete.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/dialog-ok-apply.png"));
+        lb_complete.setToolTipText("Завершён");
     }
 
 }
