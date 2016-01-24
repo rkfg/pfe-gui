@@ -15,6 +15,7 @@ import me.rkfg.pfe.PFEListener;
 import me.rkfg.pfe.TorrentActivity;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetAdapter;
@@ -41,7 +42,7 @@ import com.frostwire.jlibtorrent.swig.set_piece_hashes_listener;
 public class FileReceiver extends Composite {
 
     PFECore pfeCore = PFECore.INSTANCE;
-    private Label lblDropTargetHint;
+    private Label l_dropHint;
     private DropTarget dropTarget;
     private ToolItem addFiles;
     private ToolItem addDirs;
@@ -51,13 +52,13 @@ public class FileReceiver extends Composite {
     ExecutorService executorService = Executors.newCachedThreadPool();
     private Map<String, Progress> progresses = new HashMap<>();
     private PathStorage pathStorage = new PathStorage();
-    private Composite c_dropTarget;
     private ClipboardMonitor clipboardMonitor;
+    private Composite c_files;
 
     FileReceiver(Composite parent) {
         super(parent, SWT.NONE);
         display = getDisplay();
-        setLayout(new GridLayout(1, false));
+        setLayout(new GridLayout(2, false));
 
         ToolBar toolBar = new ToolBar(this, SWT.FLAT);
         toolBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
@@ -134,7 +135,6 @@ public class FileReceiver extends Composite {
                 });
             }
         };
-        layout();
     }
 
     private void setHandlers() {
@@ -202,13 +202,20 @@ public class FileReceiver extends Composite {
                     }, files);
                     handle.resume();
                     final String hash = pfeCore.getHash(handle);
-                    progresses.put(hash, progress);
                     display.asyncExec(new Runnable() {
 
                         @Override
                         public void run() {
-                            progress.setTitle(handle.getName(), hash);
-                            progress.setProgress(100);
+                            if (progresses.get(hash) != null) {
+                                // already seeding it
+                                progress.dispose();
+                                c_files.pack();
+                            } else {
+                                progresses.put(hash, progress);
+                                progress.setTitle(handle.getName(), hash);
+                                progress.setProgress(100);
+                                progress.setComplete();
+                            }
                         }
                     });
                     return handle;
@@ -239,28 +246,33 @@ public class FileReceiver extends Composite {
         if (progress != null) {
             return progress;
         }
-        progress = new Progress(this, SWT.NONE);
+        progress = new Progress(c_files, this, SWT.NONE);
         GridData gd_progress = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
         progress.setLayoutData(gd_progress);
-        progress.moveAbove(c_dropTarget);
         progress.setHash(hash);
         progress.updateTitle();
-        layout();
         if (hash != null) {
             progresses.put(hash, progress);
         }
+        c_files.pack();
         return progress;
     }
 
     private void createDropTarget() {
         dropTarget = new DropTarget(this, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
         dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance() });
-        c_dropTarget = new Composite(this, SWT.BORDER);
-        c_dropTarget.setLayout(new GridLayout(1, false));
-        c_dropTarget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-        lblDropTargetHint = new Label(c_dropTarget, SWT.HORIZONTAL | SWT.CENTER);
-        lblDropTargetHint.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
-        lblDropTargetHint.setText("Перетащите сюда файлы или папку, чтобы поделиться ими");
+        l_dropHint = new Label(this, SWT.WRAP | SWT.HORIZONTAL | SWT.CENTER);
+        l_dropHint.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
+        l_dropHint.setText("Перетащите файлы или папку, чтобы поделиться");
+
+        ScrolledComposite sc_scroll = new ScrolledComposite(this, SWT.V_SCROLL);
+        sc_scroll.setExpandHorizontal(true);
+        sc_scroll.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
+
+        c_files = new Composite(sc_scroll, SWT.NONE);
+        c_files.setLayout(new GridLayout(1, false));
+        c_files.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+        sc_scroll.setContent(c_files);
         dropTarget.addDropListener(new DropTargetAdapter() {
             @Override
             public void dragEnter(DropTargetEvent event) {
@@ -302,7 +314,7 @@ public class FileReceiver extends Composite {
         if (handle != null) {
             pfeCore.removeTorrent(handle);
         }
-        layout();
+        c_files.pack();
     }
 
     private void startTorrent(DownloadInfo info) {

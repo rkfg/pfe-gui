@@ -23,15 +23,15 @@ public class Progress extends Composite {
     private Clipboard clipboard;
     private String name;
     private Button b_cancel;
-    private FileReceiver parent;
     private int progress;
     private long size;
     private boolean complete = false;
     private Label lb_complete;
+    private FileReceiver receiver;
 
-    public Progress(FileReceiver parent, int style) {
+    public Progress(Composite parent, FileReceiver receiver, int style) {
         super(parent, SWT.NONE);
-        this.parent = parent;
+        this.receiver = receiver;
         createUI();
         setHandlers();
     }
@@ -52,7 +52,7 @@ public class Progress extends Composite {
                 messageBox.setMessage("Отменить эту закачку?");
                 int result = messageBox.open();
                 if (result == SWT.OK)
-                    parent.removeTorrent(hash);
+                    receiver.removeTorrent(hash);
             }
         });
     }
@@ -65,7 +65,7 @@ public class Progress extends Composite {
         lb_complete.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/arrow-down-double.png"));
         lb_complete.setToolTipText("В процессе");
 
-        lb_title = new Label(this, SWT.NONE);
+        lb_title = new Label(this, SWT.WRAP);
         lb_title.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         b_copy = new Button(this, SWT.NONE);
@@ -108,6 +108,7 @@ public class Progress extends Composite {
             b_cancel.setEnabled(true);
         }
         lb_title.setText(sb.toString());
+        layout();
     }
 
     private String formatSize() {
