@@ -51,6 +51,7 @@ public class FileReceiver extends Composite {
     ExecutorService executorService = Executors.newCachedThreadPool();
     private Map<String, Progress> progresses = new HashMap<>();
     private PathStorage pathStorage = new PathStorage();
+    private Composite c_dropTarget;
 
     FileReceiver(Composite parent) {
         super(parent, SWT.NONE);
@@ -113,6 +114,19 @@ public class FileReceiver extends Composite {
                 }
             }
         });
+        new ClipboardMonitor(getShell(), pathStorage) {
+
+            @Override
+            protected void addTorrent(final DownloadInfo info) {
+                display.asyncExec(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        startTorrent(info);
+                    }
+                });
+            }
+        };
         layout();
     }
 
@@ -154,9 +168,7 @@ public class FileReceiver extends Composite {
             public void widgetSelected(SelectionEvent e) {
                 DownloadInfo info = new DownloadDialog(getShell()).open(pathStorage.getDownloadPath());
                 if (info != null) {
-                    pathStorage.setDownloadPath(info.path);
-                    pfeCore.addTorrent(info.hash, info.path);
-                    createProgress(info.hash);
+                    startTorrent(info);
                 }
             }
         });
@@ -183,16 +195,13 @@ public class FileReceiver extends Composite {
                     }, files);
                     handle.resume();
                     final String hash = pfeCore.getHash(handle);
+                    progresses.put(hash, progress);
                     display.asyncExec(new Runnable() {
 
                         @Override
                         public void run() {
                             progress.setTitle(handle.getName(), hash);
                             progress.setProgress(100);
-                            MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_INFORMATION | SWT.OK);
-                            messageBox.setText("Готово");
-                            messageBox.setMessage("Код: " + hash);
-                            messageBox.open();
                         }
                     });
                     return handle;
@@ -219,7 +228,6 @@ public class FileReceiver extends Composite {
     }
 
     private Progress createProgress(String hash) {
-
         Progress progress = progresses.get(hash);
         if (progress != null) {
             return progress;
@@ -227,7 +235,7 @@ public class FileReceiver extends Composite {
         progress = new Progress(this, SWT.NONE);
         GridData gd_progress = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
         progress.setLayoutData(gd_progress);
-        progress.moveAbove(lblDropTargetHint);
+        progress.moveAbove(c_dropTarget);
         progress.setHash(hash);
         progress.updateTitle();
         layout();
@@ -240,7 +248,10 @@ public class FileReceiver extends Composite {
     private void createDropTarget() {
         dropTarget = new DropTarget(this, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
         dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance() });
-        lblDropTargetHint = new Label(this, SWT.NONE);
+        c_dropTarget = new Composite(this, SWT.BORDER);
+        c_dropTarget.setLayout(new GridLayout(1, false));
+        c_dropTarget.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+        lblDropTargetHint = new Label(c_dropTarget, SWT.HORIZONTAL | SWT.CENTER);
         lblDropTargetHint.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
         lblDropTargetHint.setText("Перетащите сюда файлы или папку, чтобы поделиться ими");
         dropTarget.addDropListener(new DropTargetAdapter() {
@@ -275,12 +286,20 @@ public class FileReceiver extends Composite {
         if (hash == null) {
             return;
         }
-        TorrentHandle handle = pfeCore.findTorrent(hash);
         Progress removed = progresses.remove(hash);
         if (removed != null) {
             removed.dispose();
         }
-        pfeCore.removeTorrent(handle);
+        TorrentHandle handle = pfeCore.findTorrent(hash);
+        if (handle != null) {
+            pfeCore.removeTorrent(handle);
+        }
         layout();
+    }
+
+    private void startTorrent(DownloadInfo info) {
+        pathStorage.setDownloadPath(info.path);
+        pfeCore.addTorrent(info.hash, info.path);
+        createProgress(info.hash);
     }
 }
