@@ -97,6 +97,21 @@ public class FileReceiver extends Composite {
                     }
                 }
             }
+
+            @Override
+            public void torrentStopped(Collection<TorrentActivity> stopped) {
+                for (final TorrentActivity torrentActivity : stopped) {
+                    if (torrentActivity.hash != null) {
+                        display.asyncExec(new Runnable() {
+
+                            @Override
+                            public void run() {
+                                removeTorrent(torrentActivity.hash);
+                            }
+                        });
+                    }
+                }
+            }
         });
         layout();
     }
