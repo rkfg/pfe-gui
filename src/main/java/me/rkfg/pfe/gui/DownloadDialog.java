@@ -30,14 +30,23 @@ public class DownloadDialog extends Dialog {
     }
 
     public DownloadInfo open() {
-        return open(null);
+        return open(null, null);
     }
 
-    public DownloadInfo open(String hash) {
+    public DownloadInfo open(String path) {
+        return open(null, path);
+    }
+
+    public DownloadInfo open(String hash, String path) {
         Shell shell = new Shell(getParent(), getStyle());
         shell.setSize(400, 300);
         Display display = shell.getDisplay();
         createUI(shell);
+        if (path == null) {
+            tb_saveTo.setText(Main.HOME);
+        } else {
+            tb_saveTo.setText(path);
+        }
         setHandlers();
         Main.center(shell, true);
         if (hash != null && !hash.isEmpty() && hash.length() == 32) {
@@ -85,7 +94,6 @@ public class DownloadDialog extends Dialog {
 
         b_cancel = new Button(c_okCancel, SWT.NONE);
         b_cancel.setText("Отмена");
-        tb_saveTo.setText(System.getProperty("user.home"));
         shell.pack();
     }
 

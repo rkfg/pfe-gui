@@ -50,6 +50,7 @@ public class FileReceiver extends Composite {
 
     ExecutorService executorService = Executors.newCachedThreadPool();
     private Map<String, Progress> progresses = new HashMap<>();
+    private PathStorage pathStorage = new PathStorage();
 
     FileReceiver(Composite parent) {
         super(parent, SWT.NONE);
@@ -105,11 +106,13 @@ public class FileReceiver extends Composite {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN | SWT.MULTI);
+                fileDialog.setFilterPath(pathStorage.getSharePath());
                 if (fileDialog.open() == null) {
                     return;
                 }
                 List<String> filenames = new ArrayList<>(fileDialog.getFileNames().length);
                 String filterPath = fileDialog.getFilterPath();
+                pathStorage.setDownloadPath(filterPath);
                 for (String filename : fileDialog.getFileNames()) {
                     filenames.add(new File(filterPath, filename).getAbsolutePath());
                 }
@@ -122,18 +125,21 @@ public class FileReceiver extends Composite {
                 DirectoryDialog directoryDialog = new DirectoryDialog(getShell());
                 directoryDialog.setMessage("Выберите папку, чтобы поделиться ею.");
                 directoryDialog.setText("Выберите папку");
+                directoryDialog.setFilterPath(pathStorage.getSharePath());
                 String selected = directoryDialog.open();
                 if (selected == null) {
                     return;
                 }
+                pathStorage.setSharePath(selected);
                 hashFiles(selected);
             }
         });
         downloadTorrent.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                DownloadInfo info = new DownloadDialog(getShell()).open();
+                DownloadInfo info = new DownloadDialog(getShell()).open(pathStorage.getDownloadPath());
                 if (info != null) {
+                    pathStorage.setDownloadPath(info.path);
                     pfeCore.addTorrent(info.hash, info.path);
                     createProgress(info.hash);
                 }
@@ -198,7 +204,12 @@ public class FileReceiver extends Composite {
     }
 
     private Progress createProgress(String hash) {
-        final Progress progress = new Progress(this, SWT.NONE);
+
+        Progress progress = progresses.get(hash);
+        if (progress != null) {
+            return progress;
+        }
+        progress = new Progress(this, SWT.NONE);
         GridData gd_progress = new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1);
         progress.setLayoutData(gd_progress);
         progress.moveAbove(lblDropTargetHint);
@@ -216,7 +227,7 @@ public class FileReceiver extends Composite {
         dropTarget.setTransfer(new Transfer[] { FileTransfer.getInstance() });
         lblDropTargetHint = new Label(this, SWT.NONE);
         lblDropTargetHint.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true, 1, 1));
-        lblDropTargetHint.setText("Перетащите сюда файлы или папку из проводника");
+        lblDropTargetHint.setText("Перетащите сюда файлы или папку, чтобы поделиться ими");
         dropTarget.addDropListener(new DropTargetAdapter() {
             @Override
             public void dragEnter(DropTargetEvent event) {
@@ -251,7 +262,9 @@ public class FileReceiver extends Composite {
         }
         TorrentHandle handle = pfeCore.findTorrent(hash);
         Progress removed = progresses.remove(hash);
-        removed.dispose();
+        if (removed != null) {
+            removed.dispose();
+        }
         pfeCore.removeTorrent(handle);
         layout();
     }

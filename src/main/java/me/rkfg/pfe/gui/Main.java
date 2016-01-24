@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Shell;
 
 public class Main {
 
+    public static final String HOME = System.getProperty("user.home");
     private Shell shell;
     private Display display;
     PFECore pfeCore = PFECore.INSTANCE;
