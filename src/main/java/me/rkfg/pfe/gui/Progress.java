@@ -1,5 +1,7 @@
 package me.rkfg.pfe.gui;
 
+import me.rkfg.pfe.TorrentActivity;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -28,6 +30,8 @@ public class Progress extends Composite {
     private boolean complete = false;
     private Label lb_complete;
     private FileReceiver receiver;
+    private long seedPercent = 0;
+    private int peers = 0;
 
     public Progress(Composite parent, FileReceiver receiver, int style) {
         super(parent, SWT.NONE);
@@ -108,8 +112,8 @@ public class Progress extends Composite {
             b_copy.setEnabled(true);
             b_cancel.setEnabled(true);
         }
+        sb.append(", ").append(" роздано ").append(seedPercent).append("%, качают: ").append(peers);
         lb_title.setText(sb.toString());
-        layout();
     }
 
     private String formatSize() {
@@ -130,7 +134,6 @@ public class Progress extends Composite {
 
     public void setTorrentName(String name) {
         this.name = name;
-        updateTitle();
     }
 
     public String getHash() {
@@ -139,12 +142,10 @@ public class Progress extends Composite {
 
     public void setHash(String hash) {
         this.hash = hash;
-        updateTitle();
     }
 
     public void setTorrentSize(long size) {
         this.size = size;
-        updateTitle();
     }
 
     public long geTorrentSize() {
@@ -159,6 +160,23 @@ public class Progress extends Composite {
         complete = true;
         lb_complete.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/dialog-ok-apply.png"));
         lb_complete.setToolTipText("Завершён");
+    }
+
+    public void updateActivity(TorrentActivity torrentActivity) {
+        setProgress(torrentActivity.progress);
+        if (name == null && torrentActivity.name != null) {
+            setTorrentName(torrentActivity.name);
+        }
+        long totalSize = torrentActivity.size;
+        if (size == 0 && totalSize > 0) {
+            setTorrentSize(totalSize);
+        }
+        if (!complete && torrentActivity.complete) {
+            setComplete();
+        }
+        peers = torrentActivity.peers;
+        seedPercent = torrentActivity.seedPercent;
+        updateTitle();
     }
 
 }

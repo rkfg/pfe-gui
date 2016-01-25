@@ -90,16 +90,7 @@ public class FileReceiver extends Composite {
 
                                 @Override
                                 public void run() {
-                                    progress.setProgress(torrentActivity.progress);
-                                    if (progress.getTorrentName() == null && torrentActivity.name != null) {
-                                        progress.setTorrentName(torrentActivity.name);
-                                    }
-                                    if (progress.geTorrentSize() == 0 && torrentActivity.size > 0) {
-                                        progress.setTorrentSize(torrentActivity.size);
-                                    }
-                                    if (!progress.isComplete() && torrentActivity.complete) {
-                                        progress.setComplete();
-                                    }
+                                    progress.updateActivity(torrentActivity);
                                 }
                             });
                         }
@@ -183,6 +174,7 @@ public class FileReceiver extends Composite {
 
     public void hashFiles(final String... files) {
         final Progress progress = createProgress(null);
+        progress.setTorrentName("...обработка...");
         executorService.submit(new Callable<TorrentHandle>() {
 
             @Override
@@ -201,7 +193,7 @@ public class FileReceiver extends Composite {
                         }
                     }, files);
                     handle.resume();
-                    final String hash = pfeCore.getHash(handle);
+                    final String hash = PFECore.getHash(handle);
                     display.asyncExec(new Runnable() {
 
                         @Override
