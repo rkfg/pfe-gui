@@ -13,7 +13,7 @@ import org.eclipse.swt.widgets.Shell;
 
 public abstract class ClipboardMonitor {
     Clipboard clipboard;
-    private static long POLLING_INTERVAL = 500;
+    private static long POLLING_INTERVAL = 2000;
     private TextTransfer textTransfer = TextTransfer.getInstance();
     String previous = "";
     private Display display;
