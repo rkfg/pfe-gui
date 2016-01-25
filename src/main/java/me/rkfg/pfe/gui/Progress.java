@@ -48,8 +48,9 @@ public class Progress extends Composite {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 MessageBox messageBox = new MessageBox(getShell(), SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
-                messageBox.setText("Отменить?");
-                messageBox.setMessage("Отменить эту закачку?");
+                messageBox.setText("Остановить?");
+                String operationName = complete ? "раздачу" : "закачку";
+                messageBox.setMessage("Остановить и убрать эту " + operationName + "? Файлы не пострадают.");
                 int result = messageBox.open();
                 if (result == SWT.OK)
                     receiver.removeTorrent(hash);
@@ -78,8 +79,8 @@ public class Progress extends Composite {
 
         b_cancel = new Button(this, SWT.FLAT);
         b_cancel.setEnabled(false);
-        b_cancel.setToolTipText("Отмена");
-        b_cancel.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/process-stop.png"));
+        b_cancel.setToolTipText("Остановить");
+        b_cancel.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/media-playback-stop.png"));
     }
 
     public void setProgress(int progress) {
@@ -155,6 +156,7 @@ public class Progress extends Composite {
     }
 
     public void setComplete() {
+        complete = true;
         lb_complete.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/dialog-ok-apply.png"));
         lb_complete.setToolTipText("Завершён");
     }
