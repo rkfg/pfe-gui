@@ -231,6 +231,7 @@ public class FileReceiver extends Composite {
                     @Override
                     public void run() {
                         progress.dispose();
+                        c_files.pack();
                         MessageBox messageBox = new MessageBox(getShell(), SWT.ICON_ERROR | SWT.OK);
                         messageBox.setText("Ошибка");
                         messageBox.setMessage(e.getMessage());
