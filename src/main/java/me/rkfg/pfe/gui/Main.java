@@ -66,4 +66,18 @@ public class Main {
     public static void center(Shell shell) {
         center(shell, false);
     }
+
+    public static boolean validateHash(String data) {
+        data = data.trim();
+        if (data.length() != 32) {
+            return false;
+        }
+        for (int i = 0; i < data.length(); i++) {
+            char c = data.charAt(i);
+            if (c < '2' || c > '7' && c < 'A' || c > 'Z') {
+                return false;
+            }
+        }
+        return true;
+    }
 }

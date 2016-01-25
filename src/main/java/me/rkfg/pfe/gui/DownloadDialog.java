@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Dialog;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
@@ -107,8 +108,16 @@ public class DownloadDialog extends Dialog {
         b_ok.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
+                String hash = tb_hash.getText();
+                if (!Main.validateHash(hash)) {
+                    MessageBox messageBox = new MessageBox(getParent());
+                    messageBox.setText("Ошибка");
+                    messageBox.setMessage("Неверно введён код. Он должен содержать ровно 32 символа, цифры от 2 до 7 и буквы от A до Z.");
+                    messageBox.open();
+                    return;
+                }
                 downloadInfo = new DownloadInfo();
-                downloadInfo.hash = tb_hash.getText();
+                downloadInfo.hash = hash;
                 downloadInfo.path = tb_saveTo.getText();
                 shell.close();
             }

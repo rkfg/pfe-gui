@@ -40,7 +40,7 @@ public abstract class ClipboardMonitor {
                                 } else {
                                     previous = data;
                                 }
-                                if (validate(data) && PFECore.INSTANCE.findTorrent(data) == null) {
+                                if (Main.validateHash(data) && PFECore.INSTANCE.findTorrent(data) == null) {
                                     DownloadDialog downloadDialog = new DownloadDialog(parent);
                                     DownloadInfo info = downloadDialog.open(data, pathStorage.getDownloadPath());
                                     if (info != null) {
@@ -53,19 +53,6 @@ public abstract class ClipboardMonitor {
 
                     }
                 });
-            }
-
-            private boolean validate(String data) {
-                if (data.length() != 32) {
-                    return false;
-                }
-                for (int i = 0; i < data.length(); i++) {
-                    char c = data.charAt(i);
-                    if (c < '2' || c > '7' && c < 'A' || c > 'Z') {
-                        return false;
-                    }
-                }
-                return true;
             }
         }, POLLING_INTERVAL, POLLING_INTERVAL);
     }
