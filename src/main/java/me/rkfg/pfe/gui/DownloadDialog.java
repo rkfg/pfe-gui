@@ -39,7 +39,8 @@ public class DownloadDialog extends Dialog {
     }
 
     public DownloadInfo open(String hash, String path) {
-        Shell shell = new Shell(getParent(), getStyle());
+        Shell shell = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+        shell.setText("Добавить закачку");
         shell.setSize(400, 300);
         Display display = shell.getDisplay();
         createUI(shell);
