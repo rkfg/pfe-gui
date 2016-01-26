@@ -11,6 +11,12 @@
     <profiles>
         <profile>
             <id>windows64</id>
+            <activation>
+                <property>
+                    <name>windows</name>
+                    <value>64</value>
+                </property>
+            </activation>
             <properties>
                 <profile-id>win64</profile-id>
             </properties>
@@ -27,9 +33,42 @@
                     <version>${swt.version}</version>
                 </dependency>
             </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                        <artifactId>launch4j-maven-plugin</artifactId>
+                        <version>1.7.8</version>
+                        <configuration>
+                            <headerType>gui</headerType>
+                            <jre>
+                                <minVersion>1.7.0</minVersion>
+                                <jdkPreference>preferJre</jdkPreference>
+                                <maxHeapSize>100</maxHeapSize>
+                                <path>runtime</path>
+                            </jre>
+                            <outfile>${project.build.directory}/pfe-${profile-id}.exe</outfile>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>launch4j</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>windows32</id>
+            <activation>
+                <property>
+                    <name>windows</name>
+                    <value>32</value>
+                </property>
+            </activation>
             <properties>
                 <profile-id>win32</profile-id>
             </properties>
@@ -46,6 +85,33 @@
                     <version>${swt.version}</version>
                 </dependency>
             </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                        <artifactId>launch4j-maven-plugin</artifactId>
+                        <version>1.7.8</version>
+                        <configuration>
+                            <headerType>gui</headerType>
+                            <jre>
+                                <minVersion>1.7.0</minVersion>
+                                <jdkPreference>preferJre</jdkPreference>
+                                <maxHeapSize>100</maxHeapSize>
+                                <path>runtime</path>
+                            </jre>
+                            <outfile>${project.build.directory}/pfe-${profile-id}.exe</outfile>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>launch4j</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>linux64</id>
@@ -53,6 +119,10 @@
                 <profile-id>linux64</profile-id>
             </properties>
             <activation>
+                <property>
+                    <name>linux</name>
+                    <value>64</value>
+                </property>
                 <activeByDefault>true</activeByDefault>
             </activation>
             <dependencies>
@@ -74,6 +144,12 @@
             <properties>
                 <profile-id>linux32</profile-id>
             </properties>
+            <activation>
+                <property>
+                    <name>linux</name>
+                    <value>32</value>
+                </property>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>me.rkfg.pfe</groupId>
@@ -90,6 +166,7 @@
         </profile>
     </profiles>
     <build>
+        <finalName>pfe-${profile-id}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -113,7 +190,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <finalName>pfe-${profile-id}</finalName>
                     <createDependencyReducedPom>false</createDependencyReducedPom>
                     <filters>
                         <filter>
