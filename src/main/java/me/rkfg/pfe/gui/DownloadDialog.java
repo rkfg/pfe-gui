@@ -1,6 +1,9 @@
 package me.rkfg.pfe.gui;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -138,6 +141,16 @@ public class DownloadDialog extends Dialog {
                 tb_saveTo.setText(selected);
             }
         });
+        KeyListener enterListener = new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.keyCode == 13) {
+                    confirmDialog(false);
+                }
+            }
+        };
+        tb_hash.addKeyListener(enterListener);
+        tb_saveTo.addKeyListener(enterListener);
     }
 
     private void confirmDialog(boolean openAfterDownload) {
