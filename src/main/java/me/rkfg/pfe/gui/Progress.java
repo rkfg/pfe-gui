@@ -81,7 +81,7 @@ public class Progress extends Composite {
         pb_hashProgress.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
         pb_hashProgress.setMaximum(100);
 
-        b_cancel = new Button(this, SWT.FLAT);
+        b_cancel = new Button(this, SWT.NONE);
         b_cancel.setEnabled(false);
         b_cancel.setToolTipText("Остановить");
         b_cancel.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/media-playback-stop.png"));
@@ -114,6 +114,7 @@ public class Progress extends Composite {
         }
         sb.append(", ").append(" роздано ").append(seedPercent).append("%, качают: ").append(peers);
         lb_title.setText(sb.toString());
+        lb_title.pack();
     }
 
     private String formatSize() {

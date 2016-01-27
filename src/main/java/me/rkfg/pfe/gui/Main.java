@@ -4,11 +4,22 @@ import me.rkfg.pfe.PFECore;
 import me.rkfg.pfe.SettingsStorage;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuDetectEvent;
+import org.eclipse.swt.events.MenuDetectListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TrayItem;
+import org.eclipse.wb.swt.SWTResourceManager;
 
 public class Main {
 
@@ -17,8 +28,9 @@ public class Main {
     private Display display;
     PFECore pfeCore = PFECore.INSTANCE;
     private FileReceiver fileReceiver;
+    Menu trayMenu;
 
-    Main() {
+    private Main() {
         this.display = Display.getDefault();
         this.shell = new Shell(display);
         shell.setMinimumSize(400, 300);
@@ -29,7 +41,58 @@ public class Main {
         shell.pack();
         center(shell);
         pfeCore.init(new SettingsStorage());
-        shell.open();
+        createTrayIcon();
+        shell.addListener(SWT.Close, new Listener() {
+
+            @Override
+            public void handleEvent(Event event) {
+                event.doit = false;
+                shell.setVisible(false);
+            }
+        });
+    }
+
+    private void createTrayIcon() {
+        TrayItem trayIcon = new TrayItem(display.getSystemTray(), SWT.NONE);
+        trayIcon.setImage(SWTResourceManager.getImage(Main.class, "/me/rkfg/pfe/gui/icons/arrow-down-double.png"));
+        trayMenu = new Menu(shell);
+        trayIcon.addMenuDetectListener(new MenuDetectListener() {
+
+            @Override
+            public void menuDetected(MenuDetectEvent e) {
+                trayMenu.setLocation(display.getCursorLocation());
+                trayMenu.setVisible(true);
+            }
+        });
+        trayIcon.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                shell.setVisible(!shell.isVisible());
+            }
+        });
+        MenuItem mi_open = new MenuItem(trayMenu, SWT.NONE);
+        mi_open.setText("Открыть");
+        mi_open.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                shell.open();
+            }
+        });
+        MenuItem mi_exit = new MenuItem(trayMenu, SWT.NONE);
+        mi_exit.setText("Выход");
+        mi_exit.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
+                messageBox.setText("Выход?");
+                messageBox.setMessage("Вы действительно хотите закрыть программу?"
+                        + "Ваши файлы будут недоступны, пока вы снова не запустите её.");
+                if (messageBox.open() == SWT.CANCEL) {
+                    return;
+                }
+                shell.dispose();
+            }
+        });
     }
 
     public static void main(String[] args) {
@@ -42,7 +105,6 @@ public class Main {
                 display.sleep();
             }
         }
-        shell.dispose();
         pfeCore.stop();
         fileReceiver.dispose();
         display.dispose();
