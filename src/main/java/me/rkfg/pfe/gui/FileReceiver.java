@@ -54,6 +54,7 @@ public class FileReceiver extends Composite {
     private PathStorage pathStorage = new PathStorage();
     private ClipboardMonitor clipboardMonitor;
     private Composite c_files;
+    private boolean ddOpened;
 
     FileReceiver(Composite parent) {
         super(parent, SWT.NONE);
@@ -113,7 +114,7 @@ public class FileReceiver extends Composite {
                 }
             }
         });
-        clipboardMonitor = new ClipboardMonitor(getShell(), pathStorage) {
+        clipboardMonitor = new ClipboardMonitor(this, pathStorage) {
 
             @Override
             protected void addTorrent(final DownloadInfo info) {
@@ -164,7 +165,10 @@ public class FileReceiver extends Composite {
         downloadTorrent.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                DownloadInfo info = new DownloadDialog(getShell()).open(pathStorage.getDownloadPath());
+                ddOpened = true;
+                String hashFromClipboard = clipboardMonitor.getHashFromClipboard(false);
+                DownloadInfo info = new DownloadDialog(getShell()).open(hashFromClipboard, pathStorage.getDownloadPath(), false);
+                ddOpened = false;
                 if (info != null) {
                     startTorrent(info);
                 }
@@ -316,5 +320,9 @@ public class FileReceiver extends Composite {
         pfeCore.addTorrent(info.hash, info.path);
         Progress progress = createProgress(info.hash);
         progress.setRootPath(info.path);
+    }
+
+    public boolean isDownloadDialogOpened() {
+        return ddOpened;
     }
 }

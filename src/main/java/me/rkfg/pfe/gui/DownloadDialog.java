@@ -31,14 +31,14 @@ public class DownloadDialog extends Dialog {
     }
 
     public DownloadInfo open() {
-        return open(null, null);
+        return open(null, null, false);
     }
 
     public DownloadInfo open(String path) {
-        return open(null, path);
+        return open(null, path, false);
     }
 
-    public DownloadInfo open(String hash, String path) {
+    public DownloadInfo open(String hash, String path, boolean lockHash) {
         Shell shell = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
         shell.setText("Добавить закачку");
         shell.setSize(400, 300);
@@ -53,6 +53,8 @@ public class DownloadDialog extends Dialog {
         Main.center(shell, true);
         if (hash != null && !hash.isEmpty() && hash.length() == 32) {
             tb_hash.setText(hash);
+        }
+        if (lockHash) {
             tb_hash.setEnabled(false);
         }
         shell.open();
