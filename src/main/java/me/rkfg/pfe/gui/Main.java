@@ -34,7 +34,7 @@ public class Main {
         this.display = Display.getDefault();
         this.shell = new Shell(display);
         shell.setMinimumSize(400, 300);
-        shell.setText("PFE GUI Client");
+        shell.setText("Файлообмен");
         FillLayout fillLayout = new FillLayout(SWT.ALL);
         shell.setLayout(fillLayout);
         fileReceiver = new FileReceiver(shell);
@@ -87,6 +87,7 @@ public class Main {
                 messageBox.setText("Выход?");
                 messageBox.setMessage("Вы действительно хотите закрыть программу?"
                         + "Ваши файлы будут недоступны, пока вы снова не запустите её.");
+                shell.open();
                 if (messageBox.open() == SWT.CANCEL) {
                     return;
                 }

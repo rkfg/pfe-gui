@@ -1,5 +1,7 @@
 package me.rkfg.pfe.gui;
 
+import java.io.File;
+
 import me.rkfg.pfe.TorrentActivity;
 
 import org.eclipse.swt.SWT;
@@ -10,6 +12,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
@@ -32,6 +35,8 @@ public class Progress extends Composite {
     private FileReceiver receiver;
     private long seedPercent = 0;
     private int peers = 0;
+    private Button b_open;
+    private String rootPath;
 
     public Progress(Composite parent, FileReceiver receiver, int style) {
         super(parent, SWT.NONE);
@@ -60,11 +65,20 @@ public class Progress extends Composite {
                     receiver.removeTorrent(hash);
             }
         });
+        b_open.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                if (rootPath == null || name == null) {
+                    return;
+                }
+                Program.launch(new File(rootPath, name).getAbsolutePath());
+            }
+        });
     }
 
     private void createUI() {
         clipboard = new Clipboard(getDisplay());
-        setLayout(new GridLayout(3, false));
+        setLayout(new GridLayout(4, false));
 
         lb_complete = new Label(this, SWT.NONE);
         lb_complete.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/arrow-down-double.png"));
@@ -73,12 +87,17 @@ public class Progress extends Composite {
         lb_title = new Label(this, SWT.WRAP);
         lb_title.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
+        b_open = new Button(this, SWT.NONE);
+        b_open.setToolTipText("Открыть");
+        b_open.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/folder-yellow.png"));
+        b_open.setVisible(false);
+
         b_copy = new Button(this, SWT.NONE);
         b_copy.setEnabled(false);
         b_copy.setToolTipText("Скопировать код");
         b_copy.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/edit-copy.png"));
         pb_hashProgress = new ProgressBar(this, SWT.BORDER);
-        pb_hashProgress.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
+        pb_hashProgress.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
         pb_hashProgress.setMaximum(100);
 
         b_cancel = new Button(this, SWT.NONE);
@@ -90,12 +109,6 @@ public class Progress extends Composite {
     public void setProgress(int progress) {
         this.progress = progress;
         pb_hashProgress.setSelection(progress);
-        updateTitle();
-    }
-
-    public void setTitle(String name, String hash) {
-        this.name = name;
-        this.hash = hash;
         updateTitle();
     }
 
@@ -114,7 +127,7 @@ public class Progress extends Composite {
         }
         sb.append(", ").append(" роздано ").append(seedPercent).append("%, качают: ").append(peers);
         lb_title.setText(sb.toString());
-        lb_title.pack();
+        lb_title.requestLayout();
     }
 
     private String formatSize() {
@@ -161,6 +174,12 @@ public class Progress extends Composite {
         complete = true;
         lb_complete.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/dialog-ok-apply.png"));
         lb_complete.setToolTipText("Завершён");
+        setProgress(100);
+        b_open.setVisible(true);
+    }
+
+    public void setRootPath(String rootPath) {
+        this.rootPath = rootPath;
     }
 
     public void updateActivity(TorrentActivity torrentActivity) {

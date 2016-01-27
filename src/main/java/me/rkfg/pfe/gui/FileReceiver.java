@@ -69,7 +69,7 @@ public class FileReceiver extends Composite {
         addFiles.setToolTipText("Поделиться файлом");
 
         addDirs = new ToolItem(toolBar, SWT.NONE);
-        addDirs.setImage(SWTResourceManager.getImage(FileReceiver.class, "/me/rkfg/pfe/gui/icons/document-open-folder.png"));
+        addDirs.setImage(SWTResourceManager.getImage(FileReceiver.class, "/me/rkfg/pfe/gui/icons/folder-new.png"));
         addDirs.setToolTipText("Поделиться папкой");
 
         downloadTorrent = new ToolItem(toolBar, SWT.NONE);
@@ -204,8 +204,9 @@ public class FileReceiver extends Composite {
                                 c_files.pack();
                             } else {
                                 progresses.put(hash, progress);
-                                progress.setTitle(handle.getName(), hash);
-                                progress.setProgress(100);
+                                progress.setTorrentName(handle.getName());
+                                progress.setHash(hash);
+                                progress.setRootPath(handle.getSavePath());
                                 progress.setComplete();
                             }
                         }
@@ -313,6 +314,7 @@ public class FileReceiver extends Composite {
     private void startTorrent(DownloadInfo info) {
         pathStorage.setDownloadPath(info.path);
         pfeCore.addTorrent(info.hash, info.path);
-        createProgress(info.hash);
+        Progress progress = createProgress(info.hash);
+        progress.setRootPath(info.path);
     }
 }
