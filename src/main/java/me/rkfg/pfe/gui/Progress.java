@@ -37,6 +37,7 @@ public class Progress extends Composite {
     private int peers = 0;
     private Button b_open;
     private String rootPath;
+    private boolean openAfterDownload;
 
     public Progress(Composite parent, FileReceiver receiver, int style) {
         super(parent, SWT.NONE);
@@ -68,10 +69,7 @@ public class Progress extends Composite {
         b_open.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                if (rootPath == null || name == null) {
-                    return;
-                }
-                Program.launch(new File(rootPath, name).getAbsolutePath());
+                doOpen();
             }
         });
     }
@@ -84,13 +82,12 @@ public class Progress extends Composite {
         lb_complete.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/arrow-down-double.png"));
         lb_complete.setToolTipText("В процессе");
 
-        lb_title = new Label(this, SWT.WRAP);
-        lb_title.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-
         b_open = new Button(this, SWT.NONE);
         b_open.setToolTipText("Открыть");
-        b_open.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/folder-yellow.png"));
         b_open.setVisible(false);
+
+        lb_title = new Label(this, SWT.WRAP);
+        lb_title.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 
         b_copy = new Button(this, SWT.NONE);
         b_copy.setEnabled(false);
@@ -175,7 +172,20 @@ public class Progress extends Composite {
         lb_complete.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/dialog-ok-apply.png"));
         lb_complete.setToolTipText("Завершён");
         setProgress(100);
+        showOpenButton();
+        if (openAfterDownload) {
+            doOpen();
+        }
+    }
+
+    private void showOpenButton() {
+        if (getTorrentFile().isDirectory()) {
+            b_open.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/folder-yellow.png"));
+        } else {
+            b_open.setImage(SWTResourceManager.getImage(Progress.class, "/me/rkfg/pfe/gui/icons/x-office-document.png"));
+        }
         b_open.setVisible(true);
+        b_open.requestLayout();
     }
 
     public void setRootPath(String rootPath) {
@@ -197,6 +207,21 @@ public class Progress extends Composite {
         peers = torrentActivity.peers;
         seedPercent = torrentActivity.seedPercent;
         updateTitle();
+    }
+
+    public void setOpenAfterDownload(boolean openAfterDownload) {
+        this.openAfterDownload = openAfterDownload;
+    }
+
+    private void doOpen() {
+        if (rootPath == null || name == null) {
+            return;
+        }
+        Program.launch(getTorrentFile().getAbsolutePath());
+    }
+
+    private File getTorrentFile() {
+        return new File(rootPath, name);
     }
 
 }

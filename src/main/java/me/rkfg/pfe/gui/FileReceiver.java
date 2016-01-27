@@ -320,6 +320,7 @@ public class FileReceiver extends Composite {
         pfeCore.addTorrent(info.hash, info.path);
         Progress progress = createProgress(info.hash);
         progress.setRootPath(info.path);
+        progress.setOpenAfterDownload(info.openAfterDownload);
     }
 
     public boolean isDownloadDialogOpened() {

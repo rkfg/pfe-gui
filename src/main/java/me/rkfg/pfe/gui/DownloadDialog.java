@@ -22,9 +22,10 @@ public class DownloadDialog extends Dialog {
     private Text tb_hash;
     private Text tb_saveTo;
     private Button b_cancel;
-    private Button b_ok;
+    private Button b_download;
     private Shell shell;
     private Button b_saveTo;
+    private Button b_downloadOpen;
 
     public DownloadDialog(Shell parent) {
         super(parent);
@@ -89,14 +90,17 @@ public class DownloadDialog extends Dialog {
         b_saveTo = new Button(shell, SWT.NONE);
         b_saveTo.setText("Обзор...");
 
-        Composite c_okCancel = new Composite(shell, SWT.NONE);
-        RowLayout rl_composite = new RowLayout(SWT.HORIZONTAL);
-        c_okCancel.setLayout(rl_composite);
-        c_okCancel.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 3, 1));
-        b_ok = new Button(c_okCancel, SWT.NONE);
-        b_ok.setText("OK");
+        Composite c_buttons = new Composite(shell, SWT.NONE);
+        RowLayout rl_c_buttons = new RowLayout(SWT.HORIZONTAL);
+        c_buttons.setLayout(rl_c_buttons);
+        c_buttons.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false, 3, 1));
+        b_download = new Button(c_buttons, SWT.NONE);
+        b_download.setText("Скачать");
 
-        b_cancel = new Button(c_okCancel, SWT.NONE);
+        b_downloadOpen = new Button(c_buttons, SWT.NONE);
+        b_downloadOpen.setText("Скачать и открыть");
+
+        b_cancel = new Button(c_buttons, SWT.NONE);
         b_cancel.setText("Отмена");
         shell.pack();
     }
@@ -108,21 +112,16 @@ public class DownloadDialog extends Dialog {
                 shell.close();
             }
         });
-        b_ok.addSelectionListener(new SelectionAdapter() {
+        b_download.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
-                String hash = tb_hash.getText();
-                if (!Main.validateHash(hash)) {
-                    MessageBox messageBox = new MessageBox(getParent());
-                    messageBox.setText("Ошибка");
-                    messageBox.setMessage("Неверно введён код. Он должен содержать ровно 32 символа, цифры от 2 до 7 и буквы от A до Z.");
-                    messageBox.open();
-                    return;
-                }
-                downloadInfo = new DownloadInfo();
-                downloadInfo.hash = hash;
-                downloadInfo.path = tb_saveTo.getText();
-                shell.close();
+                confirmDialog(false);
+            }
+        });
+        b_downloadOpen.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                confirmDialog(true);
             }
         });
         b_saveTo.addSelectionListener(new SelectionAdapter() {
@@ -139,5 +138,21 @@ public class DownloadDialog extends Dialog {
                 tb_saveTo.setText(selected);
             }
         });
+    }
+
+    private void confirmDialog(boolean openAfterDownload) {
+        String hash = tb_hash.getText();
+        if (!Main.validateHash(hash)) {
+            MessageBox messageBox = new MessageBox(getParent());
+            messageBox.setText("Ошибка");
+            messageBox.setMessage("Неверно введён код. Он должен содержать ровно 32 символа, цифры от 2 до 7 и буквы от A до Z.");
+            messageBox.open();
+            return;
+        }
+        downloadInfo = new DownloadInfo();
+        downloadInfo.hash = hash;
+        downloadInfo.path = tb_saveTo.getText();
+        downloadInfo.openAfterDownload = openAfterDownload;
+        shell.close();
     }
 }
