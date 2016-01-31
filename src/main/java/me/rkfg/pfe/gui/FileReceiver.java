@@ -24,6 +24,7 @@ import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -55,13 +56,15 @@ public class FileReceiver extends Composite {
     private ClipboardMonitor clipboardMonitor;
     private Composite c_files;
     private boolean ddOpened;
+    private ToolBar toolBar;
+    private ScrolledComposite sc_scroll;
 
     FileReceiver(Composite parent) {
         super(parent, SWT.NONE);
         display = getDisplay();
         setLayout(new GridLayout(2, false));
 
-        ToolBar toolBar = new ToolBar(this, SWT.FLAT);
+        toolBar = new ToolBar(this, SWT.FLAT);
         toolBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 
         addFiles = new ToolItem(toolBar, SWT.NONE);
@@ -179,6 +182,7 @@ public class FileReceiver extends Composite {
     public void hashFiles(final String... files) {
         final Progress progress = createProgress(null);
         progress.setTorrentName("...обработка...");
+        progress.updateTitle();
         executorService.submit(new Callable<TorrentHandle>() {
 
             @Override
@@ -263,7 +267,7 @@ public class FileReceiver extends Composite {
         l_dropHint.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
         l_dropHint.setText("Перетащите файлы или папку, чтобы поделиться");
 
-        ScrolledComposite sc_scroll = new ScrolledComposite(this, SWT.V_SCROLL);
+        sc_scroll = new ScrolledComposite(this, SWT.V_SCROLL);
         sc_scroll.setExpandHorizontal(true);
         sc_scroll.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
 
@@ -291,6 +295,18 @@ public class FileReceiver extends Composite {
                 hashFiles(files);
             }
         });
+    }
+
+    @Override
+    public void setBackground(Color color) {
+        super.setBackground(color);
+        sc_scroll.setBackground(color);
+        c_files.setBackground(color);
+        toolBar.setBackground(color);
+        l_dropHint.setBackground(color);
+        for (Progress progress : progresses.values()) {
+            progress.setBackground(color);
+        }
     }
 
     @Override

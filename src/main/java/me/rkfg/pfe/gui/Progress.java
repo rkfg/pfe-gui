@@ -10,6 +10,7 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -222,6 +223,14 @@ public class Progress extends Composite {
 
     private File getTorrentFile() {
         return new File(rootPath, name);
+    }
+
+    @Override
+    public void setBackground(Color color) {
+        super.setBackground(color);
+        lb_title.setBackground(color);
+        lb_complete.setBackground(color);
+        pb_hashProgress.setBackground(color);
     }
 
 }
