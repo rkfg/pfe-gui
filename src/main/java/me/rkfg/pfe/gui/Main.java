@@ -26,9 +26,11 @@ public class Main {
     public static final String HOME = System.getProperty("user.home");
     private Shell shell;
     private Display display;
-    PFECore pfeCore = PFECore.INSTANCE;
+    private PFECore pfeCore = PFECore.INSTANCE;
+    private PathStorage pathStorage = new PathStorage();
     private FileReceiver fileReceiver;
-    Menu trayMenu;
+    private Menu trayMenu;
+    private GUISettingsStorage settingsStorage;
 
     private Main() {
         this.display = Display.getDefault();
@@ -37,10 +39,11 @@ public class Main {
         shell.setText("Файлообмен");
         FillLayout fillLayout = new FillLayout(SWT.ALL);
         shell.setLayout(fillLayout);
-        fileReceiver = new FileReceiver(shell);
+        fileReceiver = new FileReceiver(shell, pathStorage);
         shell.pack();
         center(shell);
-        pfeCore.init(new SettingsStorage());
+        settingsStorage = new GUISettingsStorage(Main.class);
+        pfeCore.init(settingsStorage);
         createTrayIcon();
         shell.addListener(SWT.Close, new Listener() {
 

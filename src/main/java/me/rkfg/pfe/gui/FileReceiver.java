@@ -52,15 +52,16 @@ public class FileReceiver extends Composite {
 
     ExecutorService executorService = Executors.newCachedThreadPool();
     private Map<String, Progress> progresses = new HashMap<>();
-    private PathStorage pathStorage = new PathStorage();
     private ClipboardMonitor clipboardMonitor;
     private Composite c_files;
     private boolean ddOpened;
     private ToolBar toolBar;
     private ScrolledComposite sc_scroll;
+    private PathStorage pathStorage;
 
-    FileReceiver(Composite parent) {
+    FileReceiver(Composite parent, PathStorage pathStorage) {
         super(parent, SWT.NONE);
+        this.pathStorage = pathStorage;
         display = getDisplay();
         setLayout(new GridLayout(2, false));
 
