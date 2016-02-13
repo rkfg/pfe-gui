@@ -1,7 +1,9 @@
 package me.rkfg.pfe.gui;
 
 import me.rkfg.pfe.PFECore;
-import me.rkfg.pfe.SettingsStorage;
+import me.rkfg.pfe.gui.platform.Updater;
+import me.rkfg.pfe.gui.platform.UpdaterLinux;
+import me.rkfg.pfe.gui.platform.UpdaterWindows;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuDetectEvent;
@@ -31,6 +33,7 @@ public class Main {
     private FileReceiver fileReceiver;
     private Menu trayMenu;
     private GUISettingsStorage settingsStorage;
+    private Updater updater;
 
     private Main() {
         this.display = Display.getDefault();
@@ -44,6 +47,14 @@ public class Main {
         center(shell);
         settingsStorage = new GUISettingsStorage(Main.class);
         pfeCore.init(settingsStorage);
+
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("windows")) {
+            updater = new UpdaterWindows(settingsStorage);
+        } else {
+            updater = new UpdaterLinux(settingsStorage);
+        }
+        updater.update();
         createTrayIcon();
         shell.addListener(SWT.Close, new Listener() {
 
@@ -88,7 +99,7 @@ public class Main {
             public void widgetSelected(SelectionEvent e) {
                 MessageBox messageBox = new MessageBox(shell, SWT.OK | SWT.CANCEL | SWT.ICON_QUESTION);
                 messageBox.setText("Выход?");
-                messageBox.setMessage("Вы действительно хотите закрыть программу?"
+                messageBox.setMessage("Вы действительно хотите закрыть программу? "
                         + "Ваши файлы будут недоступны, пока вы снова не запустите её.");
                 shell.open();
                 if (messageBox.open() == SWT.CANCEL) {

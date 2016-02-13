@@ -208,7 +208,42 @@
                     </transformers>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <shortRevisionLength>10</shortRevisionLength>
+                    <format>{0}</format>
+                    <items>
+                        <item>scmVersion</item>
+                    </items>
+                </configuration>
+            </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>build.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>build.properties</exclude>
+                </excludes>
+            </resource>
+        </resources>
     </build>
     <repositories>
         <repository>
@@ -220,4 +255,7 @@
             <url>http://maven-eclipse.github.io/dev-releases/maven</url>
         </repository>
     </repositories>
+    <scm>
+        <connection>scm:git:git://github.com/rkfg/pfe-gui.git</connection>
+    </scm>
 </project>
