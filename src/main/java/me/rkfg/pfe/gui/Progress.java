@@ -114,6 +114,8 @@ public class Progress extends Composite {
         StringBuilder sb = new StringBuilder();
         if (name != null) {
             sb.append(name);
+        } else {
+            sb.append("<неизвестно>");
         }
         if (size > 0) {
             sb.append(", ").append(formatSize());
