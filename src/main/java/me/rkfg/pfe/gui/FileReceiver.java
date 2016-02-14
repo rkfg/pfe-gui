@@ -58,8 +58,9 @@ public class FileReceiver extends Composite {
     private ToolBar toolBar;
     private ScrolledComposite sc_scroll;
     private PathStorage pathStorage;
+    private Label l_version;
 
-    FileReceiver(Composite parent, PathStorage pathStorage) {
+    FileReceiver(Composite parent, PathStorage pathStorage, String versionInfo) {
         super(parent, SWT.NONE);
         this.pathStorage = pathStorage;
         display = getDisplay();
@@ -83,6 +84,10 @@ public class FileReceiver extends Composite {
 
         createDropTarget();
         setHandlers();
+        l_version = new Label(this, SWT.NONE);
+        l_version.setLayoutData(new GridData(SWT.FILL, SWT.BOTTOM, false, false, 2, 1));
+        l_version.setText("Версия: " + versionInfo);
+
         pfeCore.addPFEListener(new PFEListener() {
 
             @Override

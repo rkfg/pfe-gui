@@ -36,18 +36,8 @@ public class Main {
     private Updater updater;
 
     private Main() {
-        this.display = Display.getDefault();
-        this.shell = new Shell(display);
-        shell.setMinimumSize(400, 300);
-        shell.setText("Файлообмен");
-        FillLayout fillLayout = new FillLayout(SWT.ALL);
-        shell.setLayout(fillLayout);
-        fileReceiver = new FileReceiver(shell, pathStorage);
-        shell.pack();
-        center(shell);
         settingsStorage = new GUISettingsStorage(Main.class);
         pfeCore.init(settingsStorage);
-
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("windows")) {
             updater = new UpdaterWindows(settingsStorage);
@@ -55,6 +45,15 @@ public class Main {
             updater = new UpdaterLinux(settingsStorage);
         }
         updater.update();
+        this.display = Display.getDefault();
+        this.shell = new Shell(display);
+        shell.setMinimumSize(400, 300);
+        shell.setText("Файлообмен");
+        FillLayout fillLayout = new FillLayout(SWT.ALL);
+        shell.setLayout(fillLayout);
+        fileReceiver = new FileReceiver(shell, pathStorage, String.format("%s [%s]", updater.getBuildDate(), updater.getCommit()));
+        shell.pack();
+        center(shell);
         createTrayIcon();
         shell.addListener(SWT.Close, new Listener() {
 

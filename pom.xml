@@ -221,10 +221,11 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <shortRevisionLength>10</shortRevisionLength>
-                    <format>{0}</format>
+                    <shortRevisionLength>7</shortRevisionLength>
+                    <format>{0}|{1,date,dd-MM-yyyy}</format>
                     <items>
                         <item>scmVersion</item>
+                        <item>timestamp</item>
                     </items>
                 </configuration>
             </plugin>

@@ -28,9 +28,22 @@ import com.frostwire.jlibtorrent.alerts.TorrentFinishedAlert;
 public abstract class Updater {
     private Logger log = LoggerFactory.getLogger(getClass());
     private GUISettingsStorage settingsStorage;
+    private String currentCommit;
+    private String buildDate;
 
     public Updater(GUISettingsStorage settingsStorage) {
         this.settingsStorage = settingsStorage;
+        currentCommit = null;
+        try (BufferedReader brBuild = new BufferedReader(new InputStreamReader(Main.class.getResourceAsStream("/build.properties")))) {
+            String[] line = brBuild.readLine().split("\\|");
+            if (line.length != 2) {
+                throw new IOException("Неверный формат версии");
+            }
+            currentCommit = line[0];
+            buildDate = line[1];
+        } catch (IOException e) {
+            log.error("Не удалось прочитать версию сборки. ", e);
+        }
     }
 
     public void update() {
@@ -56,11 +69,6 @@ public abstract class Updater {
                     return;
                 }
                 try {
-                    String currentCommit = null;
-                    try (BufferedReader brBuild = new BufferedReader(new InputStreamReader(Main.class
-                            .getResourceAsStream("/build.properties")))) {
-                        currentCommit = brBuild.readLine();
-                    }
                     log.info("Current commit: {} update url: {}", currentCommit, updateUrl);
                     try (BufferedReader br = new BufferedReader(new InputStreamReader(updateUrl.openStream()))) {
                         String line = br.readLine();
@@ -105,6 +113,14 @@ public abstract class Updater {
                 }
             }
         }, 1000, TimeUnit.MINUTES.toMillis(60));
+    }
+
+    public String getBuildDate() {
+        return buildDate;
+    }
+
+    public String getCommit() {
+        return currentCommit;
     }
 
     protected String getArch() {
