@@ -1,14 +1,16 @@
 #!/bin/sh
 
 cd "$(dirname "$0")"
-rm -rf release
-for os in linux32 linux64
+TARGET_DIR="release"
+rm -rf "$TARGET_DIR"
+mkdir -p "$TARGET_DIR"
+cp pfe_settings.ini "$TARGET_DIR"
+for os in linux windows
 do
-  mvn clean package -P$os
-  TARGET_DIR="release/$os"
-  mkdir -p "$TARGET_DIR"
-  TARGET_JAR="$TARGET_DIR/pfe-gui.jar"
-  cp "target/pfe-$os.jar" "$TARGET_JAR"
-  chmod +x "$TARGET_JAR"
-  cp "pfe_settings.ini" "$TARGET_DIR"
+  for arch in 32 64
+  do
+    mvn clean package -D$os=$arch
+    cp target/pfe-*.exe "$TARGET_DIR" 2>/dev/null || cp target/pfe-*.jar "$TARGET_DIR" 2>/dev/null
+  done
+  chmod +x "$TARGET_DIR"/*.jar 2>/dev/null
 done
