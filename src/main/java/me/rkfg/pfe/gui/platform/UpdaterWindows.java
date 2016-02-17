@@ -9,12 +9,8 @@ import java.nio.charset.Charset;
 import me.rkfg.pfe.AbstractSettingsStorage;
 import me.rkfg.pfe.gui.GUISettingsStorage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class UpdaterWindows extends Updater {
 
-    private Logger log = LoggerFactory.getLogger(getClass());
     private static final int DELAY_UPDATE_SEC = 5;
 
     public UpdaterWindows(GUISettingsStorage settingsStorage) {
@@ -30,11 +26,6 @@ public class UpdaterWindows extends Updater {
     @Override
     protected String getBinaryFilename() {
         return "pfe-win" + getArch() + ".exe";
-    }
-
-    @Override
-    protected String getUpdateFilename(String binaryFilename) {
-        return binaryFilename + ".new";
     }
 
     @Override

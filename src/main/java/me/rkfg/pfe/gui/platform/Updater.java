@@ -12,11 +12,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-import me.rkfg.pfe.AbstractSettingsStorage;
-import me.rkfg.pfe.PFECore;
-import me.rkfg.pfe.gui.GUISettingsStorage;
-import me.rkfg.pfe.gui.Main;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,8 +20,13 @@ import com.frostwire.jlibtorrent.TorrentHandle;
 import com.frostwire.jlibtorrent.alerts.AlertType;
 import com.frostwire.jlibtorrent.alerts.TorrentFinishedAlert;
 
+import me.rkfg.pfe.AbstractSettingsStorage;
+import me.rkfg.pfe.PFECore;
+import me.rkfg.pfe.gui.GUISettingsStorage;
+import me.rkfg.pfe.gui.Main;
+
 public abstract class Updater {
-    private Logger log = LoggerFactory.getLogger(getClass());
+    protected Logger log = LoggerFactory.getLogger(getClass());
     private GUISettingsStorage settingsStorage;
     private String currentCommit;
     private String buildDate;
@@ -49,6 +49,7 @@ public abstract class Updater {
     public void update() {
         Path targetPath = getUpdateFilePath();
         if (targetPath.toFile().exists()) {
+            log.info("Update file exists: {}, performing the update.", targetPath);
             if (doUpdate()) {
                 System.exit(1);
             }
@@ -143,14 +144,12 @@ public abstract class Updater {
         if (ownFilename) {
             filename = getBinaryFilename();
         } else {
-            filename = getUpdateFilename(getBinaryFilename());
+            filename = getBinaryFilename() + ".new";
         }
         return new File(AbstractSettingsStorage.getJarDirectory(Updater.class)).toPath().resolve(filename);
     }
 
     protected abstract String getBinaryFilename();
-
-    protected abstract String getUpdateFilename(String binaryFilename);
 
     /**
      * Perform the update.
