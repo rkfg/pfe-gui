@@ -143,17 +143,17 @@ public class Main {
         center(shell, false);
     }
 
-    public static boolean validateHash(String data) {
-        data = data.trim();
+    public static String validateHash(String data) {
+        data = data.trim().toUpperCase();
         if (data.length() != 32) {
-            return false;
+            return null;
         }
         for (int i = 0; i < data.length(); i++) {
             char c = data.charAt(i);
             if (c < '2' || c > '7' && c < 'A' || c > 'Z') {
-                return false;
+                return null;
             }
         }
-        return true;
+        return data;
     }
 }

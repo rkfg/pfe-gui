@@ -58,7 +58,8 @@ public abstract class ClipboardMonitor {
                         previous = data;
                     }
                 }
-                if (Main.validateHash(data) && PFECore.INSTANCE.findTorrent(data) == null) {
+                data = Main.validateHash(data);
+                if (data != null && PFECore.INSTANCE.findTorrent(data) == null) {
                     return data;
                 }
                 return null;

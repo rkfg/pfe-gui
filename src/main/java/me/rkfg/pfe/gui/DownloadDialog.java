@@ -154,8 +154,8 @@ public class DownloadDialog extends Dialog {
     }
 
     private void confirmDialog(boolean openAfterDownload) {
-        String hash = tb_hash.getText();
-        if (!Main.validateHash(hash)) {
+        String hash = Main.validateHash(tb_hash.getText());
+        if (hash == null) {
             MessageBox messageBox = new MessageBox(getParent());
             messageBox.setText("Ошибка");
             messageBox.setMessage("Неверно введён код. Он должен содержать ровно 32 символа, цифры от 2 до 7 и буквы от A до Z.");
